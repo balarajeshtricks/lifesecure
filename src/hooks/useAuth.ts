@@ -1,23 +1,42 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 export const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if admin is already logged in
-    const authStatus = sessionStorage.getItem('admin-authenticated');
-    setIsAuthenticated(authStatus === 'true');
+    // Check if user is already authenticated
+    const checkAuth = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setIsAuthenticated(!!user);
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = () => {
-    sessionStorage.setItem('admin-authenticated', 'true');
     setIsAuthenticated(true);
   };
 
   const logout = () => {
-    sessionStorage.removeItem('admin-authenticated');
     setIsAuthenticated(false);
   };
 
-  return { isAuthenticated, login, logout };
+  return { isAuthenticated, login, logout, loading };
 };

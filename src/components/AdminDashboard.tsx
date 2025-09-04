@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { LogOut, Users, Calendar, FileText, TrendingUp, X, Search, Filter } from 'lucide-react';
 import { Customer } from '../types/Customer';
-import { getCustomers, updateCustomerStatus } from '../services/storageService';
+import { getCustomers, updateCustomerStatus, getCustomersByStatus } from '../services/customerService';
+import { signOutAdmin } from '../services/authService';
 import CustomerCard from './CustomerCard';
 import AppointmentModal from './AppointmentModal';
 
@@ -16,6 +17,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAppointmentModal, setShowAppointmentModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const statuses = ['All', 'Registered', 'Appointment Scheduled', 'Meeting', 'Closure', 'Not Interested'];
 
@@ -35,9 +38,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     filterCustomers();
   }, [customers, selectedStatus, searchTerm]);
 
-  const loadCustomers = () => {
-    const customerData = getCustomers();
-    setCustomers(customerData);
+  const loadCustomers = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const customerData = await getCustomers();
+      setCustomers(customerData);
+    } catch (err) {
+      setError('Failed to load customers');
+      console.error('Error loading customers:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filterCustomers = () => {
@@ -58,7 +70,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     setFilteredCustomers(filtered);
   };
 
-  const handleStatusChange = (customerId: string, newStatus: Customer['status']) => {
+  const handleStatusChange = async (customerId: string, newStatus: Customer['status']) => {
     if (newStatus === 'Appointment Scheduled') {
       const customer = customers.find(c => c.id === customerId);
       if (customer) {
@@ -66,17 +78,37 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         setShowAppointmentModal(true);
       }
     } else {
-      updateCustomerStatus(customerId, newStatus);
-      loadCustomers();
+      try {
+        await updateCustomerStatus(customerId, newStatus);
+        await loadCustomers();
+      } catch (err) {
+        setError('Failed to update customer status');
+        console.error('Error updating status:', err);
+      }
     }
   };
 
-  const handleAppointmentScheduled = (appointmentDetails: { date: string; time: string; place: string }) => {
+  const handleAppointmentScheduled = async (appointmentDetails: { date: string; time: string; place: string }) => {
     if (selectedCustomer) {
-      updateCustomerStatus(selectedCustomer.id, 'Appointment Scheduled', appointmentDetails);
-      loadCustomers();
-      setShowAppointmentModal(false);
-      setSelectedCustomer(null);
+      try {
+        await updateCustomerStatus(selectedCustomer.id, 'Appointment Scheduled', appointmentDetails);
+        await loadCustomers();
+        setShowAppointmentModal(false);
+        setSelectedCustomer(null);
+      } catch (err) {
+        setError('Failed to schedule appointment');
+        console.error('Error scheduling appointment:', err);
+      }
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOutAdmin();
+      onLogout();
+    } catch (err) {
+      console.error('Error signing out:', err);
+      onLogout(); // Still logout on frontend even if backend fails
     }
   };
 
@@ -103,7 +135,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
               <span className="text-xl font-bold text-gray-800">LifeSecure Admin</span>
             </div>
             <button
-              onClick={onLogout}
+              onClick={handleLogout}
               className="flex items-center space-x-2 text-gray-600 hover:text-red-600 transition-colors"
             >
               <LogOut className="h-5 w-5" />
@@ -115,6 +147,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
       {/* Dashboard Content */}
       <div className="container mx-auto px-6 py-8">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6">
+            {error}
+            <button 
+              onClick={() => setError('')}
+              className="ml-2 text-red-800 hover:text-red-900"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl p-6 shadow-lg">
@@ -207,7 +251,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           </div>
           
           <div className="divide-y divide-gray-200">
-            {filteredCustomers.length === 0 ? (
+            {loading ? (
+              <div className="p-12 text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-500">Loading customers...</p>
+              </div>
+            ) : filteredCustomers.length === 0 ? (
               <div className="p-12 text-center">
                 <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Users className="h-8 w-8 text-gray-400" />

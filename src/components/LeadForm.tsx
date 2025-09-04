@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { X, User, Mail, Phone, Calendar, CheckCircle } from 'lucide-react';
-import { Customer } from '../types/Customer';
-import { saveCustomer } from '../services/storageService';
+import { saveCustomer } from '../services/customerService';
 import { sendLeadNotificationEmails } from '../services/emailService';
 
 interface LeadFormProps {
@@ -61,15 +60,13 @@ const LeadForm: React.FC<LeadFormProps> = ({ onClose }) => {
     setIsSubmitting(true);
 
     try {
-      const customer: Customer = {
-        id: Date.now().toString(),
+      const customerData = {
         ...formData,
-        status: 'Registered',
-        submittedAt: new Date().toISOString()
+        status: 'Registered' as const
       };
 
-      saveCustomer(customer);
-      await sendLeadNotificationEmails(customer);
+      const savedCustomer = await saveCustomer(customerData);
+      await sendLeadNotificationEmails(savedCustomer);
       
       setIsSubmitted(true);
     } catch (error) {

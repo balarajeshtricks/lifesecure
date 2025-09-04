@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Shield, User, Lock, Eye, EyeOff } from 'lucide-react';
-import { authenticateAdmin } from '../services/storageService';
+import { authenticateAdmin } from '../services/authService';
 
 interface AdminLoginProps {
   onLogin: () => void;

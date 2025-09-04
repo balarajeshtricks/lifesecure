@@ -5,15 +5,16 @@ export interface Customer {
   mobile: string;
   dob: string;
   status: 'Registered' | 'Appointment Scheduled' | 'Meeting' | 'Closure' | 'Not Interested';
-  submittedAt: string;
-  appointmentDetails?: {
-    date: string;
-    time: string;
-    place: string;
-  };
+  appointment_date?: string | null;
+  appointment_time?: string | null;
+  appointment_place?: string | null;
+  submitted_at: string;
+  updated_at: string;
 }
 
 export interface Admin {
+  id: string;
   username: string;
-  password: string;
+  password_hash: string;
+  created_at: string;
 }

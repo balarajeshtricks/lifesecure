@@ -128,7 +128,7 @@ const CustomerCard: React.FC<CustomerCardProps> = ({ customer, onStatusChange, s
                     <span className="text-gray-600">Submitted: </span>
                     <span className="font-medium text-gray-800">{formatDate(customer.submittedAt)}</span>
                   </div>
-                </div>
+                <span className="font-medium text-gray-800">{formatDate(customer.submitted_at)}</span>
               </div>
             </div>
 
@@ -141,24 +141,24 @@ const CustomerCard: React.FC<CustomerCardProps> = ({ customer, onStatusChange, s
                     <div className="flex items-center space-x-3">
                       <Calendar className="h-5 w-5 text-yellow-600" />
                       <span className="font-medium text-gray-800">{customer.appointmentDetails.date}</span>
-                    </div>
+                    <span className="font-medium text-gray-800">{customer.appointment_date}</span>
                     
                     <div className="flex items-center space-x-3">
                       <Clock className="h-5 w-5 text-yellow-600" />
                       <span className="font-medium text-gray-800">{customer.appointmentDetails.time}</span>
-                    </div>
+                    <span className="font-medium text-gray-800">{customer.appointment_time}</span>
                     
                     <div className="flex items-center space-x-3">
                       <MapPin className="h-5 w-5 text-yellow-600" />
                       <span className="font-medium text-gray-800">{customer.appointmentDetails.place}</span>
-                    </div>
+                    <span className="font-medium text-gray-800">{customer.appointment_place}</span>
                   </div>
                 </div>
               </div>
             )}
           </div>
         </div>
-      )}
+          {customer.appointment_date && customer.appointment_time && customer.appointment_place && (
 
       {showStatusDropdown && (
         <div 
