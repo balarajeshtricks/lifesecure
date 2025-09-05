@@ -22,7 +22,8 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onBack }) => {
       // Simulate authentication delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      if (authenticateAdmin(credentials.username, credentials.password)) {
+      const isAuthenticated = await authenticateAdmin(credentials.username, credentials.password);
+      if (isAuthenticated) {
         onLogin();
       } else {
         setError('Invalid username or password');

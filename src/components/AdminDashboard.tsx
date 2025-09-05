@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LogOut, Users, Calendar, FileText, TrendingUp, X, Search, Filter } from 'lucide-react';
+import { LogOut, Users, Calendar, FileText, TrendingUp, X, Search, Filter, Shield } from 'lucide-react';
 import { Customer } from '../types/Customer';
 import { getCustomers, updateCustomerStatus, getCustomersByStatus } from '../services/customerService';
 import { signOutAdmin } from '../services/authService';
