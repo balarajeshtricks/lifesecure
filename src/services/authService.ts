@@ -1,7 +1,20 @@
 import { supabase } from '../lib/supabase';
 
+// Fallback authentication for demo purposes when Supabase is not connected
+const DEMO_ADMIN = {
+  username: 'admin',
+  password: 'admin123'
+};
+
 export const authenticateAdmin = async (username: string, password: string): Promise<boolean> => {
   try {
+    // Check if we're using placeholder Supabase credentials
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (!supabaseUrl || supabaseUrl === 'https://placeholder.supabase.co') {
+      // Use demo authentication
+      return username === DEMO_ADMIN.username && password === DEMO_ADMIN.password;
+    }
+
     // First, sign in with Supabase auth using email/password
     // For demo purposes, we'll use a fixed email format
     const email = `${username}@lifesecure-admin.com`;
